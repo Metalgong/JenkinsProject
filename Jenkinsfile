@@ -7,7 +7,7 @@ pipeline {
   }
 
   environment {
-    // ===== Nexus Repository Info =====
+    // ===== Nexus Repository Info , ok =====
     NEXUS_VERSION       = "nexus3"
     NEXUS_PROTOCOL      = "http"
     NEXUS_URL           = "3.88.202.19:8081"
