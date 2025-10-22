@@ -63,12 +63,12 @@ stage('clone Build Application') {
 
 
     // ======================== STEP 3: Build the Application ====================
-    stage('Build Application') {
-      steps {
-        echo "🏗️ Building Maven project..."
-        sh 'mvn clean install -DskipTests'
-      }
-    }
+    //stage('Build Application') {
+    //  steps {
+    //    echo "🏗️ Building Maven project..."
+    //   sh 'mvn clean install -DskipTests'
+    //  }
+    //}
 
     // ======================== STEP 4: Run Unit Tests ===========================
     stage('Run Unit Tests') {
