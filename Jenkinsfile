@@ -38,15 +38,16 @@ pipeline {
       }
     }
 
-    // ======================== STEP 2: Checkout Source Code =====================
+        // ======================== STEP 2: Checkout Source Code =====================
     stage('Checkout Source Code') {
       steps {
         slackSend(channel: env.SLACK_CHANNEL,
                   message: "🟡 Build #${BUILD_NUMBER} started for *${env.JOB_NAME}* by ${env.BUILD_USER ?: 'Jenkins'}",
                   color: '#FFFF00')
-        git url: 'https://github.com/hkhcoder/vprofile-project.git', branch: 'atom'
+        git url: 'https://github.com/Metalgong/JenkinsProject.git', branch: 'main'
       }
     }
+
 
     // ======================== STEP 3: Build the Application ====================
     stage('Build Application') {
