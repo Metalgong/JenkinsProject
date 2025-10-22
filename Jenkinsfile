@@ -48,7 +48,7 @@ pipeline {
       }
     }
 
-stage('Build Application') {
+stage('clone Build Application') {
   steps {
     script {
       echo "🏗️ Cloning and Building Application..."
