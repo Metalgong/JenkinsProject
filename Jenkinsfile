@@ -74,88 +74,98 @@ stage('Build vProfile Application') {
 
     // ======================== STEP 4: Run Unit Tests ===========================
     stage('Run Unit Tests') {
-      steps {
-        echo "🧪 Running unit tests..."
-        sh 'mvn test'
-      }
+  steps {
+    echo "🧪 Running unit tests..."
+    dir('vprofile-project') {
+      sh 'mvn test'
     }
+  }
+}
+
 
     // ======================== STEP 5: Run Integration Tests ====================
     stage('Run Integration Tests') {
-      steps {
-        echo "🔍 Running integration tests..."
-        sh 'mvn verify -DskipUnitTests'
-      }
+  steps {
+    echo "🔍 Running integration tests..."
+    dir('vprofile-project') {
+      sh 'mvn verify -DskipUnitTests'
     }
+  }
+}
+
 
     // ======================== STEP 6: Code Analysis - Checkstyle ===============
     stage('Code Analysis - Checkstyle') {
-      steps {
-        echo "📋 Performing Checkstyle analysis..."
-        sh 'mvn checkstyle:checkstyle'
-      }
+  steps {
+    echo "📋 Performing Checkstyle analysis..."
+    dir('vprofile-project') {
+      sh 'mvn checkstyle:checkstyle'
     }
+  }
+}
+
 
     // ======================== STEP 7: Code Analysis - SonarQube ================
     stage('Code Analysis - SonarQube') {
-      environment {
-        scannerHome = tool 'sonarscanner4'
-      }
-      steps {
-        script {
-          echo "🧠 Running SonarQube analysis..."
-          withSonarQubeEnv('sonar-pro') {
-            sh '''
-              ${scannerHome}/bin/sonar-scanner \
-                -Dsonar.projectKey=vprofile \
-                -Dsonar.projectName=vprofile-repo \
-                -Dsonar.projectVersion=1.0 \
-                -Dsonar.sources=src/ \
-                -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
-                -Dsonar.junit.reportsPath=target/surefire-reports/ \
-                -Dsonar.jacoco.reportsPath=target/jacoco.exec \
-                -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-            '''
-          }
-          def qg = waitForQualityGate()
-          if (qg.status != 'OK') {
-            error "❌ SonarQube Quality Gate failed!"
-          }
-          echo "✅ SonarQube Quality Gate passed successfully."
+  environment {
+    scannerHome = tool 'sonarscanner4'
+  }
+  steps {
+    script {
+      echo "🧠 Running SonarQube analysis..."
+      dir('vprofile-project') {
+        withSonarQubeEnv('sonar-pro') {
+          sh '''
+            ${scannerHome}/bin/sonar-scanner \
+              -Dsonar.projectKey=vprofile \
+              -Dsonar.projectName=vprofile-repo \
+              -Dsonar.projectVersion=1.0 \
+              -Dsonar.sources=src/ \
+              -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+              -Dsonar.junit.reportsPath=target/surefire-reports/ \
+              -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+              -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+          '''
         }
       }
+      def qg = waitForQualityGate()
+      if (qg.status != 'OK') {
+        error "❌ SonarQube Quality Gate failed!"
+      }
+      echo "✅ SonarQube Quality Gate passed successfully."
     }
+  }
+}
+
 
     // ======================== STEP 8: Publish to Nexus =========================
     stage('Publish Artifact to Nexus') {
-      when {
-        expression {
-          sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim() == 'atom'
-        }
-      }
-      steps {
-        script {
-          def pom = readMavenPom file: "pom.xml"
-          def filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
-          def artifactPath = filesByGlob[0].path
+  steps {
+    script {
+      dir('vprofile-project') {
+        def pom = readMavenPom file: "pom.xml"
+        def filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
+        def artifactPath = filesByGlob[0].path
 
-          echo "📦 Uploading artifact ${pom.artifactId}-${pom.version}.war to Nexus..."
-          nexusArtifactUploader(
-            nexusVersion:  NEXUS_VERSION,
-            protocol:      NEXUS_PROTOCOL,
-            nexusUrl:      NEXUS_URL,
-            groupId:       pom.groupId,
-            version:       ARTVERSION,
-            repository:    NEXUS_REPOSITORY,
-            credentialsId: NEXUS_CREDENTIAL_ID,
-            artifacts: [
-              [ artifactId: pom.artifactId, classifier: '', file: artifactPath, type: pom.packaging ],
-              [ artifactId: pom.artifactId, classifier: '', file: "pom.xml", type: "pom" ]
-            ]
-          )
-        }
+        echo "📦 Uploading artifact ${pom.artifactId}-${pom.version}.war to Nexus..."
+        nexusArtifactUploader(
+          nexusVersion:  NEXUS_VERSION,
+          protocol:      NEXUS_PROTOCOL,
+          nexusUrl:      NEXUS_URL,
+          groupId:       pom.groupId,
+          version:       ARTVERSION,
+          repository:    NEXUS_REPOSITORY,
+          credentialsId: NEXUS_CREDENTIAL_ID,
+          artifacts: [
+            [ artifactId: pom.artifactId, classifier: '', file: artifactPath, type: pom.packaging ],
+            [ artifactId: pom.artifactId, classifier: '', file: "pom.xml", type: "pom" ]
+          ]
+        )
       }
     }
+  }
+}
+
 
     // ======================== STEP 9: Create Dockerfile (Tomcat 10) ===========
     stage('Create Dockerfile') {
