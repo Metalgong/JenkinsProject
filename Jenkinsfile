@@ -48,6 +48,19 @@ pipeline {
       }
     }
 
+stage('Build Application') {
+  steps {
+    script {
+      echo "🏗️ Cloning and Building Application..."
+      sh '''
+        git clone git@github.com:hkhcoder/vprofile-project.git
+        cd vprofile-project
+        mvn clean install -DskipTests
+      '''
+    }
+  }
+}
+
 
     // ======================== STEP 3: Build the Application ====================
     stage('Build Application') {
