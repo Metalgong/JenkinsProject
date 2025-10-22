@@ -48,11 +48,12 @@ pipeline {
       }
     }
 
-stage('clone Build Application') {
+stage('Build vProfile Application') {
   steps {
     script {
       echo "🏗️ Cloning and Building Application..."
       sh '''
+        rm -rf vprofile-project               # ✅ Clean any old copy
         git clone git@github.com:hkhcoder/vprofile-project.git
         cd vprofile-project
         mvn clean install -DskipTests
@@ -60,6 +61,7 @@ stage('clone Build Application') {
     }
   }
 }
+
 
 
     // ======================== STEP 3: Build the Application ====================
